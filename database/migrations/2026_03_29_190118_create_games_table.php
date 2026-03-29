@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['waiting', 'in_progress', 'finished']);
-            $table->foreign('current_turn_player_id')->references('id')->on('users');
-            $table->foreign('winner_player_id')->references('id')->on('users');
-            $table->timestamp('started_at', precision: 0);
-            $table->timestamp('ended_at', precision: 0);
+            $table->enum('status', ['waiting', 'in_progress', 'finished'])->default('waiting');
+            $table->foreignId('current_turn_player_id')->nullable()->constrained(table: 'game_players');
+            $table->foreignId('winner_player_id')->nullable()->constrained(table: 'game_players');
+            $table->timestamp('started_at', precision: 0)->nullable();
+            $table->timestamp('ended_at', precision: 0)->nullable();
             $table->timestamps();
         });
     }

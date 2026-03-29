@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('game_id')->constrained();
             $table->foreignId('board_space_id')->constrained();
-            $table->foreign('owner_game_player_id')->references('id')->on('game_players');
+            $table->foreignId('owner_game_player_id')->nullable()->constrained(table: 'game_players');
             $table->integer('houses')->default(0);
             $table->boolean('hotel')->default(false);
             $table->boolean('mortgaged')->default(false);
