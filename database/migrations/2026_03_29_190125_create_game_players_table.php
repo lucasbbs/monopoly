@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('game_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->integer('turn_order')->default(0);
-            $table->enum('token', ['car', 'hat', 'dog', 'thimble', 'iron', 'wheelbarrow']);
+            $table->enum('token', ['boot', 'car', 'cat', 'dog', 'duck', 'horse', 'iron', 'penguin', 'ship', 'top_hat', 't_rex', 'wheel_barrow']);
             $table->integer('cash')->default(1500);
             $table->integer('position')->default(0);
             $table->boolean('in_jail')->default(false);

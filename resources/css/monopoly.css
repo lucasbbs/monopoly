@@ -59,8 +59,89 @@ h6 {
 }
 
 .table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 24px;
+  padding-bottom: 40px;
   padding-left: 50px;
   padding-right: 50px;
+}
+
+.token-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  width: min(994px, 100%);
+  padding: 18px 22px;
+  background: #fafaf8;
+  border: 2px solid #080808;
+  box-shadow: 8px 8px 0 #080808;
+}
+
+.token-toolbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.token-toolbar__field--range {
+  flex: 1 1 260px;
+}
+
+.token-toolbar select,
+.token-toolbar input,
+.token-toolbar button,
+.token-toolbar output {
+  font: inherit;
+  text-transform: uppercase;
+}
+
+.token-toolbar select,
+.token-toolbar input,
+.token-toolbar button {
+  min-height: 42px;
+  border: 2px solid #080808;
+  background: #fffdf5;
+}
+
+.token-toolbar select,
+.token-toolbar input {
+  padding: 0 12px;
+}
+
+.token-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.token-toolbar button {
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.token-toolbar button:hover {
+  background: #ffed20;
+}
+
+.token-toolbar output {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 2px dashed #080808;
+  background: #f3f1e8;
 }
 
 .board {
@@ -68,11 +149,52 @@ h6 {
   grid-template-columns: 125px repeat(9, 80px) 125px;
   grid-template-rows: 125px repeat(9, 80px) 125px;
   grid-gap: 2px;
-  margin: 50px auto;
+  position: relative;
+  margin: 0 auto 50px;
   width: 994px;
   height: 994px;
   background: #080808;
   border: 2px solid #080808;
+}
+
+.board-token-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.board-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  bottom: 0;
+  pointer-events: auto;
+  /* border: 2px solid rgba(8, 8, 8, 0.35);
+  border-radius: 50%;
+  background: rgba(250, 250, 248, 0.94);
+  box-shadow: 0 6px 16px rgba(8, 8, 8, 0.18); */
+  transform: translate(-50%, -60%);
+}
+
+.board-token__canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.board-token__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 20px;
+  font-weight: 500;
+  pointer-events: none;
 }
 
 .center {
@@ -176,6 +298,7 @@ h6 {
 }
 
 .space {
+  position: relative;
   background: #fafaf8;
   text-align: center;
 }
