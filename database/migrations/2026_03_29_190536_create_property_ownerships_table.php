@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('property_ownership', function (Blueprint $table) {
+        Schema::create('property_ownerships', function (Blueprint $table) {
             $table->id();
             $table->foreignId('game_id')->constrained();
             $table->foreignId('board_space_id')->constrained();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('property_ownership');
+        Schema::dropIfExists('property_ownerships');
     }
 };
