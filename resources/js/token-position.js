@@ -81,6 +81,7 @@ class TokenPosition {
     }
 
     this.#token = token;
+    this.#element.title = token;
     this.#fallback.textContent = token.slice(0, 2).toUpperCase();
 
     if (!this.#renderer || !this.#scene) {
@@ -170,7 +171,7 @@ class TokenPosition {
 
   #createElement() {
     const element = document.createElement('div');
-    element.title = this.#token;
+    element.title = '';
     element.className = 'board-token';
 
     const fallback = document.createElement('span');
