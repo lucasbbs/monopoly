@@ -1,0 +1,5 @@
+<div class="container">
+  <div class="instructions">Collect $200.00 salary as you pass</div>
+  <div class="go-word">go</div>
+</div>
+<div class="arrow fa fa-long-arrow-left"></div>
