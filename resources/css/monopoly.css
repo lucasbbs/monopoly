@@ -341,7 +341,7 @@ h6 {
 }
 
 .property .name {
-  padding-bottom: 50px;
+  margin-bottom: auto;
 }
 
 .railroad .name {
@@ -513,7 +513,6 @@ h6 {
 
 .chance .drawing {
   font-size: 90px;
-  color: #f50c2b;
 }
 
 .chance .blue {
@@ -574,9 +573,4 @@ h6 {
 .long-name {
   padding-left: 0 !important;
   padding-right: 0 !important;
-}
-
-.three-line-name {
-  position: relative;
-  top: 5px;
 }
