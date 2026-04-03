@@ -37,6 +37,9 @@ test('animated banner renders board space components', function () {
                 'orange' => true,
             ],
         ])
+        ->assertSeeHtml('animated-banner__space space fee')
+        ->assertSeeHtml('animated-banner__space space property')
+        ->assertSeeHtml('animated-banner__space space chance')
         ->assertSee('Luxury Tax')
         ->assertSee('Marvin Gardens')
         ->assertSee('Chance');
