@@ -14,4 +14,5 @@
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @vite(['resources/css/monopoly.css'])
+@vite(['resources/views/livewire/dice/dice.css'])
 @fluxAppearance
