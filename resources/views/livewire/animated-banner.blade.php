@@ -1,4 +1,4 @@
-<div class="flex gap-1 overflow-x-auto pb-2">
+<div wire:poll.500ms="refreshSpaces" class="flex gap-1 overflow-x-auto pb-2 w-fit mx-auto">
     @foreach ($randomSpaces as $index => $space)
         @php
             $spaceType = str($space['component'])->after('space.')->toString();
