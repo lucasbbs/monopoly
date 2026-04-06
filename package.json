@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "start": "composer run dev"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.2.2",
@@ -21,5 +22,10 @@
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "devDependencies": {
+        "daisyui": "^5.5.19",
+        "laravel-echo": "^2.3.3",
+        "pusher-js": "^8.5.0"
     }
 }
