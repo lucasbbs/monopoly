@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 
+const BOARD_SPACE_COUNT = 40;
 const RENDER_SIZE = 96;
+const STEP_DELAY_MS = 220;
 const TOKEN_FILES = Object.freeze({
   Boot: new URL('../tokens/Boot.stl', import.meta.url).href,
   Car: new URL('../tokens/Car.stl', import.meta.url).href,
@@ -31,15 +33,19 @@ const TOKEN_COLORS = Object.freeze({
   WheelBarrow: 0x70593f,
 });
 
-const clampPosition = (position) => {
+const normalizePosition = (position) => {
   const parsedPosition = Number.parseInt(position, 10);
 
   if (Number.isNaN(parsedPosition)) {
     return 0;
   }
 
-  return Math.min(40, Math.max(0, parsedPosition));
+  return ((parsedPosition % BOARD_SPACE_COUNT) + BOARD_SPACE_COUNT) % BOARD_SPACE_COUNT;
 };
+
+const wait = (duration) => new Promise((resolve) => {
+  window.setTimeout(resolve, duration);
+});
 
 class TokenPosition {
   static availableTokens = Object.keys(TOKEN_FILES);
@@ -53,6 +59,7 @@ class TokenPosition {
   #camera = null;
   #loader = new STLLoader();
   #mesh = null;
+  #movementQueue = Promise.resolve();
   #token = null;
   #position = 0;
 
@@ -82,6 +89,7 @@ class TokenPosition {
 
     this.#token = token;
     this.#element.title = token;
+    this.#element.setAttribute('aria-label', token);
     this.#fallback.textContent = token.slice(0, 2).toUpperCase();
 
     if (!this.#renderer || !this.#scene) {
@@ -121,9 +129,23 @@ class TokenPosition {
   }
 
   moveTo(position) {
-    this.#position = clampPosition(position);
+    this.#position = normalizePosition(position);
 
     return this.render();
+  }
+
+  async moveBy(steps, options = {}) {
+    const parsedSteps = Number.parseInt(steps, 10);
+
+    if (Number.isNaN(parsedSteps) || parsedSteps === 0) {
+      return this;
+    }
+
+    this.#movementQueue = this.#movementQueue.then(() => this.#walkSteps(parsedSteps, options.onStep));
+
+    await this.#movementQueue;
+
+    return this;
   }
 
   render() {
@@ -182,6 +204,34 @@ class TokenPosition {
     element.append(fallback);
 
     return element;
+  }
+
+  async #walkSteps(steps, onStep = null) {
+    const direction = steps >= 0 ? 1 : -1;
+    const totalSteps = Math.abs(steps);
+
+    this.#element?.classList.add('board-token--rolling');
+
+    for (let currentStep = 0; currentStep < totalSteps; currentStep += 1) {
+      this.moveTo(this.#position + direction);
+      onStep?.(this.#position);
+      this.#animateHop();
+
+      await wait(STEP_DELAY_MS);
+    }
+
+    this.#element?.classList.remove('board-token--hop');
+    this.#element?.classList.remove('board-token--rolling');
+  }
+
+  #animateHop() {
+    if (!this.#element) {
+      return;
+    }
+
+    this.#element.classList.remove('board-token--hop');
+    void this.#element.offsetWidth;
+    this.#element.classList.add('board-token--hop');
   }
 
   #setupRenderer() {
