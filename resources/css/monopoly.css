@@ -12,7 +12,6 @@ body {
   background-size: 100px;
   font-family: "Oswald", sans-serif;
   font-weight: 400;
-  font-size: 10px;
   color: #080808;
   text-transform: uppercase;
 }
@@ -157,6 +156,19 @@ h6 {
   border: 2px solid #080808;
 }
 
+.dice-container {
+  position: absolute;
+  left: 108px;
+  bottom: 125px;
+  transform: scale(0.7);
+}
+
+.dice-inner-container {
+  display: flex;
+  gap: 32px;
+
+}
+
 .board-token-layer {
   position: absolute;
   inset: 0;
@@ -177,6 +189,18 @@ h6 {
   background: rgba(250, 250, 248, 0.94);
   box-shadow: 0 6px 16px rgba(8, 8, 8, 0.18); */
   transform: translate(-50%, -60%);
+  transition:
+    left 180ms cubic-bezier(0.32, 1, 0.68, 1),
+    top 180ms cubic-bezier(0.32, 1, 0.68, 1),
+    filter 180ms ease;
+}
+
+.board-token--rolling {
+  filter: drop-shadow(0 18px 18px rgba(8, 8, 8, 0.2));
+}
+
+.board-token--hop {
+  animation: board-token-hop 220ms ease-out;
 }
 
 .board-token__canvas {
@@ -184,6 +208,20 @@ h6 {
   height: 100%;
   border-radius: 50%;
   pointer-events: none;
+}
+
+@keyframes board-token-hop {
+  0% {
+    transform: translate(-50%, -60%) scale(1);
+  }
+
+  45% {
+    transform: translate(-50%, -84%) scale(1.04);
+  }
+
+  100% {
+    transform: translate(-50%, -60%) scale(1);
+  }
 }
 
 .board-token__fallback {
@@ -301,6 +339,7 @@ h6 {
   position: relative;
   background: #fafaf8;
   text-align: center;
+  font-size: 10px;
 }
 
 .space .container {
