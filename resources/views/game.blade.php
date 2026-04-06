@@ -23,6 +23,7 @@
         <x-space.deck type="community-chest" />
         <h1 class="title">MONOPOLY</h1>
         <x-space.deck type="chance" />
+        <livewire:dice-tray />
       </div>
 
       <div class="space corner go" data-space="0">
