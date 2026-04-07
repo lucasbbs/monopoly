@@ -2,32 +2,38 @@
 
 namespace App\Models;
 
+use Database\Factories\GameFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Game extends Model
 {
-    /** @use HasFactory<\Database\Factories\GameFactory> */
+    /** @use HasFactory<GameFactory> */
     use HasFactory;
 
     public const STATUS_WAITING = 'waiting';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_FINISHED = 'finished';
 
     protected $table = 'games';
 
     protected $fillable = [
+        'name',
+        'max_players',
         'status',
         'current_turn_player_id',
         'winner_player_id',
         'started_at',
-        'ended_at'
+        'ended_at',
     ];
 
     protected $casts = [
+        'max_players' => 'integer',
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
     ];
@@ -35,6 +41,11 @@ class Game extends Model
     public function players(): HasMany
     {
         return $this->hasMany(GamePlayer::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(GameMessage::class);
     }
 
     public function currentTurnPlayer(): BelongsTo
@@ -62,15 +73,21 @@ class Game extends Model
         return $this->status === self::STATUS_FINISHED;
     }
 
+    public function isSinglePlayer(): bool
+    {
+        return $this->max_players <= 1;
+    }
+
     public function start(): self
     {
-        if (!$this->isWaiting()) {
-            throw new \DomainException('Only waiting games can be started.');
+        if (! $this->isWaiting()) {
+            throw new DomainException('Only waiting games can be started.');
         }
+
         $firstPlayer = $this->players()->orderBy('turn_order')->first();
 
-        if (!$firstPlayer) {
-            throw new \DomainException('Cannot start a game without players.');
+        if (! $firstPlayer instanceof GamePlayer) {
+            throw new DomainException('Cannot start a game without players.');
         }
 
         $this->current_turn_player_id = $firstPlayer->id;
@@ -83,8 +100,8 @@ class Game extends Model
 
     public function finish(?GamePlayer $winner = null): self
     {
-        if (!$this->isInProgress()) {
-            throw new \DomainException('Only in-progress games can be finished.');
+        if (! $this->isInProgress()) {
+            throw new DomainException('Only in-progress games can be finished.');
         }
 
         $this->status = self::STATUS_FINISHED;
@@ -97,17 +114,17 @@ class Game extends Model
 
     public function advanceTurn(): self
     {
-        if (!$this->isInProgress()) {
-            throw new \DomainException('Only in-progress games can advance turns.');
+        if (! $this->isInProgress()) {
+            throw new DomainException('Only in-progress games can advance turns.');
         }
 
         $players = $this->players()
-                    ->where('is_bankrupt', false)
-                    ->orderBy('turn_order')
-                    ->get();
+            ->where('is_bankrupt', false)
+            ->orderBy('turn_order')
+            ->get();
 
         if ($players->isEmpty()) {
-            throw new \DomainException('No players available to advance turn.');
+            throw new DomainException('No players available to advance turn.');
         }
 
         if ($players->count() === 1) {
@@ -130,4 +147,3 @@ class Game extends Model
         return $this;
     }
 }
-
