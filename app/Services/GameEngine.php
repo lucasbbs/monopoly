@@ -18,23 +18,35 @@ class GameEngine
                 throw new DomainException('Only waiting games can be started.');
             }
 
-            if (! $game->players()->exists()) {
+            $players = $game->players()->get();
+
+            if ($players->isEmpty()) {
                 throw new DomainException('Cannot start a game without players.');
             }
 
-            if ($game->players()->where('turn_order', '<=', 0)->exists()) {
+            if ($players->contains(fn (GamePlayer $player) => $player->turn_order <= 0)) {
                 throw new DomainException('All players must have a valid turn_order before the game starts.');
             }
 
-            $distinctTurnOrders = $game->players()
-                ->select('turn_order')
-                ->distinct()
-                ->count();
-
-            $playersCount = $game->players()->count();
+            $playersCount = $players->count();
+            $distinctTurnOrders = $players->pluck('turn_order')->unique()->count();
 
             if ($distinctTurnOrders !== $playersCount) {
                 throw new DomainException('Each player must have a unique turn_order.');
+            }
+
+            if (! $game->isSinglePlayer()) {
+                if ($playersCount !== $game->max_players) {
+                    throw new DomainException('Fill every seat before starting the game.');
+                }
+
+                if ($players->pluck('token')->unique()->count() !== $playersCount) {
+                    throw new DomainException('Each player must choose a different token.');
+                }
+
+                if ($players->contains(fn (GamePlayer $player) => ! $player->isReady())) {
+                    throw new DomainException('Every player must be ready before the game starts.');
+                }
             }
 
             $this->initializePropertyOwnerships($game);
@@ -53,6 +65,14 @@ class GameEngine
 
             return $game->fresh(['players', 'currentTurnPlayer']);
         });
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    public function rollDice(): array
+    {
+        return [random_int(1, 6), random_int(1, 6)];
     }
 
     public function takeTurn(Game $game): array
@@ -184,11 +204,6 @@ class GameEngine
                 ]
             );
         }
-    }
-
-    protected function rollDice(): array
-    {
-        return [random_int(1, 6), random_int(1, 6)];
     }
 
     protected function movePlayer(GamePlayer $player, int $steps): array
