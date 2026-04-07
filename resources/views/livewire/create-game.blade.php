@@ -19,22 +19,37 @@
                     <div class="bg-red-500 text-white flex text-3xl w-full card-title rounded-t-xl p-3">
                         <flux:icon.plus class="size-10" variant="mini" /> <span>New Game</span>
                     </div>
-                    <div class="space-y-4 p-4 rounded-b-xl">
-                        <x-input.text class="w-full" placeholder="Game Name" />
-                        <x-select class="w-full">
-                            <option value="" disabled selected>Number of Players</option>
-                            @foreach(range(2, 12) as $number)
-                            <option value="{{ $number }}">{{ $number }}</option>
-                            @endforeach
-                        </x-select>
+                    <form wire:submit="createGame" class="space-y-4 p-4 rounded-b-xl">
+                        <div class="space-y-1">
+                            <x-input.text
+                                wire:model="name"
+                                class="w-full"
+                                placeholder="Game Name"
+                            />
+                            @error('name')
+                                <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="space-y-1">
+                            <x-select wire:model="maxPlayers" class="w-full">
+                                <option value="" disabled>Number of Players</option>
+                                @foreach (range(2, 12) as $number)
+                                    <option value="{{ $number }}">{{ $number }}</option>
+                                @endforeach
+                            </x-select>
+                            @error('maxPlayers')
+                                <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <x-button type="submit" class="w-full flex justify-center gap-2 text-lg">
-                            <flux:icon.dices class="size-6 text-white" variant="mini" />    
+                            <flux:icon.dices class="size-6 text-white" variant="mini" />
                             <span>Create Game</span>
                         </x-button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
