@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\GameLifecycleEvent;
 use App\Models\BoardSpace;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -11,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class GameEngine
 {
-    public function startGame(Game $game): Game
+    public function startGame(Game $game, ?int $actorId = null): Game
     {
-        return DB::transaction(function () use ($game) {
+        $game =  DB::transaction(function () use ($game) {
             if (! $game->isWaiting()) {
                 throw new DomainException('Only waiting games can be started.');
             }
@@ -65,6 +66,17 @@ class GameEngine
 
             return $game->fresh(['players', 'currentTurnPlayer']);
         });
+
+        GameLifecycleEvent::dispatch(
+            gameId: $game->id,
+            type: 'game.started',
+            data: [
+                'current_turn_player_id' => $game->current_turn_player_id,
+            ],
+            actorId: $actorId,
+        );
+
+    return $game;
     }
 
     /**
