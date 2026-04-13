@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('property_ownerships', function (Blueprint $table) {
             $table->id();
             $table->foreignId('game_id')->constrained();
-            $table->foreignId('board_space_id')->constrained();
+            $table->unsignedInteger('space_position');
             $table->foreignId('owner_game_player_id')->nullable()->constrained(table: 'game_players');
             $table->integer('houses')->default(0);
             $table->boolean('hotel')->default(false);
             $table->boolean('mortgaged')->default(false);
+            $table->unique(['game_id', 'space_position']);
             $table->timestamps();
         });
     }

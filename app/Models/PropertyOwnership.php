@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Support\BoardCatalog;
+use Database\Factories\PropertyOwnershipFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PropertyOwnership extends Model
 {
-    /** @use HasFactory<\Database\Factories\PropertyOwnershipFactory> */
+    /** @use HasFactory<PropertyOwnershipFactory> */
     use HasFactory;
 
     protected $fillable = [
         'game_id',
-        'board_space_id',
+        'space_position',
         'owner_game_player_id',
         'houses',
         'hotel',
@@ -22,7 +25,7 @@ class PropertyOwnership extends Model
 
     protected $casts = [
         'game_id' => 'integer',
-        'board_space_id' => 'integer',
+        'space_position' => 'integer',
         'owner_game_player_id' => 'integer',
         'houses' => 'integer',
         'hotel' => 'boolean',
@@ -34,9 +37,16 @@ class PropertyOwnership extends Model
         return $this->belongsTo(Game::class);
     }
 
-    public function boardSpace(): BelongsTo
+    /**
+     * @return array<string, mixed>
+     */
+    public function space(): array
     {
-        return $this->belongsTo(BoardSpace::class);
+        if ($this->space_position === null) {
+            throw new DomainException('Property ownership is missing a board space position.');
+        }
+
+        return BoardCatalog::spaceAt($this->space_position);
     }
 
     public function owner(): BelongsTo
@@ -54,12 +64,12 @@ class PropertyOwnership extends Model
         return $this->mortgaged;
     }
 
-     public function hasHotel(): bool
+    public function hasHotel(): bool
     {
         return $this->hotel;
     }
 
-     public function houseCount(): int
+    public function houseCount(): int
     {
         return $this->houses;
     }
@@ -70,10 +80,9 @@ class PropertyOwnership extends Model
         $this->save();
     }
 
-    public function unmortgage()
+    public function unmortgage(): void
     {
         $this->mortgaged = false;
         $this->save();
     }
-
 }
