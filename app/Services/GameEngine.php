@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Events\GameLifecycleEvent;
-use App\Models\BoardSpace;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\PropertyOwnership;
+use App\Support\BoardCatalog;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +14,7 @@ class GameEngine
 {
     public function startGame(Game $game, ?int $actorId = null): Game
     {
-        $game =  DB::transaction(function () use ($game) {
+        $game = DB::transaction(function () use ($game) {
             if (! $game->isWaiting()) {
                 throw new DomainException('Only waiting games can be started.');
             }
@@ -76,7 +76,7 @@ class GameEngine
             actorId: $actorId,
         );
 
-    return $game;
+        return $game;
     }
 
     /**
@@ -125,10 +125,10 @@ class GameEngine
                 'steps' => $steps,
                 'move' => $moveResult,
                 'space' => [
-                    'id' => $space->id,
-                    'name' => $space->name,
-                    'position' => $space->position,
-                    'type' => $space->type,
+                    'id' => $space['position'],
+                    'name' => $space['name'],
+                    'position' => $space['position'],
+                    'type' => $space['type'],
                 ],
                 'landing' => $landingResult,
                 'game' => $game->fresh(['players', 'currentTurnPlayer', 'winnerPlayer']),
@@ -151,31 +151,31 @@ class GameEngine
 
             $space = $this->getBoardSpaceByPosition($player->position);
 
-            if (! $space->isOwnable()) {
+            if (! BoardCatalog::isOwnable($space)) {
                 throw new DomainException('This board space cannot be purchased.');
             }
 
             $ownership = PropertyOwnership::query()
                 ->where('game_id', $game->id)
-                ->where('board_space_id', $space->id)
+                ->where('space_position', $space['position'])
                 ->firstOrFail();
 
             if ($ownership->isOwned()) {
                 throw new DomainException('This property already has an owner.');
             }
 
-            if (($space->price ?? 0) <= 0) {
+            if (($space['price'] ?? 0) <= 0) {
                 throw new DomainException('This property does not have a valid price.');
             }
 
-            if ($player->cash < $space->price) {
+            if ($player->cash < $space['price']) {
                 throw new DomainException('The player does not have enough cash to buy this property.');
             }
 
-            $player->removeCash($space->price);
+            $player->removeCash($space['price']);
             $ownership->assignOwner($player);
 
-            return $ownership->fresh(['boardSpace', 'owner']);
+            return $ownership->fresh(['owner']);
         });
     }
 
@@ -194,19 +194,11 @@ class GameEngine
 
     protected function initializePropertyOwnerships(Game $game): void
     {
-        $ownableSpaces = BoardSpace::query()
-            ->whereIn('type', [
-                BoardSpace::TYPE_PROPERTY,
-                BoardSpace::TYPE_RAILROAD,
-                BoardSpace::TYPE_UTILITY,
-            ])
-            ->get();
-
-        foreach ($ownableSpaces as $space) {
+        foreach (BoardCatalog::ownableSpaces() as $space) {
             PropertyOwnership::firstOrCreate(
                 [
                     'game_id' => $game->id,
-                    'board_space_id' => $space->id,
+                    'space_position' => $space['position'],
                 ],
                 [
                     'owner_game_player_id' => null,
@@ -239,10 +231,13 @@ class GameEngine
         ];
     }
 
-    protected function resolveLanding(Game $game, GamePlayer $player, BoardSpace $space): array
+    /**
+     * @param  array<string, mixed>  $space
+     */
+    protected function resolveLanding(Game $game, GamePlayer $player, array $space): array
     {
-        if ($space->isTax()) {
-            $amount = $space->price ?? 0;
+        if (BoardCatalog::isTax($space)) {
+            $amount = $space['price'] ?? 0;
             $player->removeCash($amount);
 
             return [
@@ -251,7 +246,7 @@ class GameEngine
             ];
         }
 
-        if ($space->isGoToJail()) {
+        if (BoardCatalog::isGoToJail($space)) {
             $player->sendToJail();
 
             return [
@@ -259,31 +254,31 @@ class GameEngine
             ];
         }
 
-        if ($space->isChance()) {
+        if (BoardCatalog::isChance($space)) {
             return [
                 'action' => 'chance',
                 'message' => 'Chance card resolution not implemented yet.',
             ];
         }
 
-        if ($space->isCommunityChest()) {
+        if (BoardCatalog::isCommunityChest($space)) {
             return [
                 'action' => 'community_chest',
                 'message' => 'Community Chest resolution not implemented yet.',
             ];
         }
 
-        if ($space->isOwnable()) {
+        if (BoardCatalog::isOwnable($space)) {
             $ownership = PropertyOwnership::query()
                 ->where('game_id', $game->id)
-                ->where('board_space_id', $space->id)
+                ->where('space_position', $space['position'])
                 ->firstOrFail();
 
             if (! $ownership->isOwned()) {
                 return [
                     'action' => 'unowned_property',
                     'can_buy' => true,
-                    'price' => $space->price,
+                    'price' => $space['price'],
                 ];
             }
 
@@ -318,9 +313,12 @@ class GameEngine
         ];
     }
 
-    protected function calculateRent(BoardSpace $space, PropertyOwnership $ownership): int
+    /**
+     * @param  array<string, mixed>  $space
+     */
+    protected function calculateRent(array $space, PropertyOwnership $ownership): int
     {
-        $rent = $space->base_rent ?? 0;
+        $rent = $space['base_rent'] ?? 0;
 
         if ($ownership->hotel) {
             return $rent + 200;
@@ -350,15 +348,16 @@ class GameEngine
         }
     }
 
-    protected function getBoardSpaceByPosition(int $position): BoardSpace
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getBoardSpaceByPosition(int $position): array
     {
-        return BoardSpace::query()
-            ->where('position', $position)
-            ->firstOrFail();
+        return BoardCatalog::spaceAt($position);
     }
 
     protected function getBoardSize(): int
     {
-        return BoardSpace::query()->count();
+        return BoardCatalog::count();
     }
 }
