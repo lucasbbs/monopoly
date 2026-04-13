@@ -38,7 +38,10 @@
                 <td class="text-sm text-gray-500 dark:text-gray-400">
                     {{ $game->status }}
                 </td>
-                <td class="text-sm text-gray-500 dark:text-gray-400">
+                <td class="text-sm text-gray-500 dark:text-gray-400 flex gap-2">
+                    <x-button.link href="{{ route('monopoly.show', $game) }}">
+                        {{ __('View') }}
+                    </x-button.link>
                     <form action="{{ route('monopoly.join', $game) }}" method="post">
                         @csrf
                         <x-button type="submit" method="post" class="text-gray-900 dark:text-white">
