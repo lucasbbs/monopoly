@@ -20,9 +20,10 @@
 
     <div class="board" data-monopoly-board>
       <div class="center">
-        <x-space.deck type="community-chest" />
+        <!-- <x-space.deck type="community-chest" />
         <h1 class="title">MONOPOLY</h1>
-        <x-space.deck type="chance" />
+        <x-space.deck type="chance" /> -->
+        <livewire:trade />
         <livewire:dice-tray />
       </div>
 

@@ -8,10 +8,10 @@ use App\Models\GamePlayer;
 use App\Models\User;
 use App\Services\GameEngine;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\View\View;
 
 class GameController extends Controller
 {
@@ -50,51 +50,6 @@ class GameController extends Controller
         return redirect()->route('monopoly.show', $game);
     }
 
-    public function play(Request $request, GameEngine $gameEngine): View|RedirectResponse
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        $game = Game::query()
-            ->whereHas('players', fn ($query) => $query->where('user_id', $user->id))
-            ->whereIn('status', [Game::STATUS_WAITING, Game::STATUS_IN_PROGRESS])
-            ->latest('updated_at')
-            ->first();
-
-        if (! $game instanceof Game) {
-            $game = $this->createSinglePlayerGame($user, $gameEngine);
-        }
-
-        return $this->renderGame($user, $game, $gameEngine);
-    }
-
-    public function show(Request $request, Game $game, GameEngine $gameEngine): View|RedirectResponse
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        return $this->renderGame($user, $game, $gameEngine);
-    }
-
-    protected function renderGame(User $user, Game $game, GameEngine $gameEngine): View|RedirectResponse
-    {
-        abort_unless(
-            $game->players()->where('user_id', $user->id)->exists(),
-            404,
-        );
-
-        if ($game->isWaiting()) {
-            if (! $game->isSinglePlayer()) {
-                return redirect()->route('monopoly.invite', $game);
-            }
-
-            $game = $gameEngine->startGame($game);
-        }
-
-        return view('game', [
-            'game' => $game->load(['players.user', 'currentTurnPlayer.user', 'winnerPlayer.user']),
-        ]);
-    }
 
     protected function createSinglePlayerGame(User $user, GameEngine $gameEngine): Game
     {
